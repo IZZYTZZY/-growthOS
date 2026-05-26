@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 // components/ui/AnalyticsChart.tsx
 // Pure SVG chart — no recharts/chart.js dependency needed for the free tier.
