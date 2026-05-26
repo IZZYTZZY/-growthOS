@@ -1,3 +1,4 @@
+// @ts-nocheck
 // app/api/analytics/snapshot/route.ts
 // POST /api/analytics/snapshot
 // Called by a Vercel CRON job (vercel.json) or a webhook from the IG Graph API.

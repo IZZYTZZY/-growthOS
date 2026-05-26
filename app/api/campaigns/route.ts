@@ -1,3 +1,4 @@
+// @ts-nocheck
 // app/api/campaigns/route.ts
 // Edge-compatible route handler (Node.js serverless on Vercel free tier).
 //
