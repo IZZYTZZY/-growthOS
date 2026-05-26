@@ -1,41 +1,32 @@
 // @ts-nocheck
 'use client'
 // components/dashboard/SidebarNav.tsx
-// Client component so we can read the current pathname for active states.
-
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
-import {
-  LayoutDashboard,
-  Megaphone,
-  CalendarDays,
-  Settings,
-  BarChart3,
-  Users2,
-  Sparkles,
-  Bell,
-  LogOut,
-} from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import {
+  LayoutDashboard, Megaphone, CalendarDays, Settings,
+  BarChart3, Users2, Sparkles, Bell, LogOut,
+} from 'lucide-react'
 
 const NAV_ITEMS = [
   {
     section: 'Main',
     items: [
-      { href: '/dashboard',           label: 'Overview',         icon: LayoutDashboard },
-      { href: '/dashboard/campaigns', label: 'Campaigns',        icon: Megaphone },
-      { href: '/dashboard/planner',   label: 'Content Planner',  icon: CalendarDays },
-      { href: '/dashboard/analytics', label: 'Analytics',        icon: BarChart3 },
+      { href: '/dashboard',           label: 'Overview',        icon: LayoutDashboard },
+      { href: '/dashboard/campaigns', label: 'Campaigns',       icon: Megaphone },
+      { href: '/dashboard/planner',   label: 'Content Planner', icon: CalendarDays },
+      { href: '/dashboard/analytics', label: 'Analytics',       icon: BarChart3 },
     ],
   },
   {
     section: 'Tools',
     items: [
-      { href: '/dashboard/ai',          label: 'AI Generator',   icon: Sparkles },
-      { href: '/dashboard/accounts',    label: 'IG Accounts',    icon: Users2 },
-      { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
+      { href: '/dashboard/ai',            label: 'AI Generator',   icon: Sparkles },
+      { href: '/dashboard/accounts',      label: 'IG Accounts',    icon: Users2 },
+      { href: '/dashboard/notifications', label: 'Notifications',  icon: Bell },
     ],
   },
   {
@@ -48,8 +39,35 @@ const NAV_ITEMS = [
 
 export function SidebarNav() {
   const pathname = usePathname()
-  const router = useRouter()
+  const router   = useRouter()
   const supabase = createClient()
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    const loadUnread = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { count } = await supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+      setUnreadCount(count ?? 0)
+    }
+    loadUnread()
+
+    // Realtime subscription for new notifications
+    const channel = supabase
+      .channel('notifications-sidebar')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'notifications',
+      }, () => loadUnread())
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   const isActive = (href: string) =>
     href === '/dashboard'
@@ -72,25 +90,18 @@ export function SidebarNav() {
           <ul className="space-y-0.5">
             {section.items.map(({ href, label, icon: Icon }) => (
               <li key={href}>
-                <Link
-                  href={href}
+                <Link href={href}
                   className={cn(
                     'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                     isActive(href)
                       ? 'text-white bg-gradient-to-r from-violet-600/25 to-fuchsia-600/10 border border-violet-500/20 shadow-sm shadow-violet-900/20'
                       : 'text-gray-400 hover:text-gray-100 hover:bg-white/[0.05]'
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      'h-4 w-4 flex-shrink-0',
-                      isActive(href) ? 'text-violet-400' : 'text-gray-500'
-                    )}
-                  />
+                  )}>
+                  <Icon className={cn('h-4 w-4 flex-shrink-0', isActive(href) ? 'text-violet-400' : 'text-gray-500')} />
                   {label}
-                  {label === 'Notifications' && (
+                  {label === 'Notifications' && unreadCount > 0 && (
                     <span className="ml-auto h-4 w-4 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center">
-                      3
+                      {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </Link>
@@ -102,11 +113,8 @@ export function SidebarNav() {
 
       {/* Sign out */}
       <div className="pt-2 border-t border-white/[0.05]">
-        <button
-          onClick={handleSignOut}
-          className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium
-                     text-gray-500 hover:text-red-400 hover:bg-red-900/10 transition-all duration-200"
-        >
+        <button onClick={handleSignOut}
+          className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-500 hover:text-red-400 hover:bg-red-900/10 transition-all duration-200">
           <LogOut className="h-4 w-4 flex-shrink-0" />
           Sign Out
         </button>
@@ -114,4 +122,3 @@ export function SidebarNav() {
     </nav>
   )
 }
-
