@@ -153,7 +153,9 @@ export default function CampaignsPage() {
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
               {filtered.map(c => (
-                <tr key={c.id} className="group hover:bg-white/[0.02] transition-colors">
+                <tr key={c.id} 
+  onClick={() => window.location.href = `/dashboard/campaigns/${c.id}`}
+  className="group hover:bg-white/[0.02] transition-colors cursor-pointer">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-600/30 to-fuchsia-600/20 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
