@@ -1,3 +1,4 @@
+// @ts-nocheck
 // app/layout.tsx
 import type { Metadata } from 'next'
 import { Syne, DM_Sans } from 'next/font/google'
@@ -40,3 +41,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
+

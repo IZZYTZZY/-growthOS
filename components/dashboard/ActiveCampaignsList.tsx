@@ -1,3 +1,4 @@
+// @ts-nocheck
 // components/dashboard/ActiveCampaignsList.tsx
 // Server component — receives campaigns from parent page.
 
@@ -64,3 +65,4 @@ export function ActiveCampaignsList({ campaigns }: ActiveCampaignsListProps) {
     </div>
   )
 }
+

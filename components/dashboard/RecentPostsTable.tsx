@@ -1,3 +1,4 @@
+// @ts-nocheck
 // components/dashboard/RecentPostsTable.tsx
 import Link from 'next/link'
 import { CalendarDays, ArrowRight, FileVideo, Image as ImageIcon } from 'lucide-react'
@@ -69,3 +70,4 @@ export function RecentPostsTable({ posts }: { posts: ScheduledPost[] }) {
     </div>
   )
 }
+

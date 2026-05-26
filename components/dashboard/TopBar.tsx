@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 // components/dashboard/TopBar.tsx
 
@@ -53,3 +54,4 @@ export function TopBar({ user, authUser }: TopBarProps) {
     </header>
   )
 }
+

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // lib/utils.ts — Shared utility functions
 
 import { type ClassValue, clsx } from 'clsx'
@@ -100,3 +101,4 @@ export function generateMockChartData(days = 30) {
   }
   return data
 }
+

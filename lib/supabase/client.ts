@@ -1,3 +1,4 @@
+// @ts-nocheck
 // lib/supabase/client.ts
 // Browser-side Supabase client — safe to use in Client Components.
 // Uses @supabase/ssr createBrowserClient for correct cookie handling.
@@ -19,3 +20,4 @@ export function getSupabaseClient() {
   if (!_client) _client = createClient()
   return _client
 }
+

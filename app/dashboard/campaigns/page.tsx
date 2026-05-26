@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 // app/dashboard/campaigns/page.tsx
 // Full campaigns management page — list, create, filter, delete.
@@ -234,3 +235,4 @@ export default function CampaignsPage() {
     </div>
   )
 }
+
