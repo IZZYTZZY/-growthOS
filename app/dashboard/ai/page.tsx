@@ -88,15 +88,15 @@ export default function AIGeneratorPage() {
             {/* Niche selector */}
             <div>
               <label className="label">Niche *</label>
-              <select
-                value={niche}
-                onChange={e => setNiche(e.target.value)}
-                className="input"
-              >
-                <option value="">Select a niche…</option>
-                {NICHES.map(n => <option key={n} value={n}>{n}</option>)}
-                <option value="__custom__">Custom…</option>
-              </select>
+             <select value={niche} onChange={e => setNiche(e.target.value)}
+  style={{ backgroundColor: '#1a1a26', color: '#f2f2fa', colorScheme: 'dark' }}
+  className="w-full rounded-xl border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40 transition-all">
+  <option value="" style={{ backgroundColor: '#1a1a26', color: '#f2f2fa' }}>Select a niche…</option>
+  {NICHES.map(n => (
+    <option key={n} value={n} style={{ backgroundColor: '#1a1a26', color: '#f2f2fa' }}>{n}</option>
+  ))}
+  <option value="__custom__" style={{ backgroundColor: '#1a1a26', color: '#f2f2fa' }}>Custom…</option>
+</select>
             </div>
 
             {niche === '__custom__' && (
