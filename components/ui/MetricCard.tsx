@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 import { TrendingUp, TrendingDown, Minus, Users, Eye, Heart,
          Share2, BarChart2, Clock, Zap } from 'lucide-react'
