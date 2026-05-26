@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    const plan = profile?.subscription_plan ?? 'starter'
+    const plan = (profile as any)?.subscription_plan ?? 'starter'
 
     // (Rate limiting via Supabase Edge Functions or Upstash would go here for production)
 
