@@ -54,12 +54,11 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(5)
 
-  const hasAccount  = !!account
-  const hasData     = (snapshots?.length ?? 0) > 0
-  const latestSnap  = snapshots?.[0]
-  const prevSnap    = snapshots?.[snapshots.length - 1]
+  const hasAccount = !!account
+  const hasData    = (snapshots?.length ?? 0) > 0
+  const prevSnap   = snapshots?.[snapshots.length - 1]
 
-  // 4. All metrics come from REAL data only — no fake fallbacks
+  // 4. All metrics from REAL data only
   const followersNow   = hasAccount ? (account.followers_count ?? 0) : 0
   const followersPrev  = prevSnap?.followers_count ?? followersNow
   const followersDelta = followersPrev > 0
@@ -76,11 +75,11 @@ export default async function DashboardPage() {
     ? snapshots.reduce((s, r) => s + Number(r.engagement_rate ?? 0), 0) / snapshots.length
     : 0
 
-  const totalReach   = snapshots?.reduce((s, r) => s + (r.reach ?? 0), 0) ?? 0
-  const totalSaves   = snapshots?.reduce((s, r) => s + (r.saves ?? 0), 0) ?? 0
-  const totalShares  = snapshots?.reduce((s, r) => s + (r.shares ?? 0), 0) ?? 0
-  const totalWatch   = snapshots?.reduce((s, r) => s + (r.watch_time_secs ?? 0), 0) ?? 0
-  const totalVisits  = snapshots?.reduce((s, r) => s + (r.profile_visits ?? 0), 0) ?? 0
+  const totalReach  = snapshots?.reduce((s, r) => s + (r.reach ?? 0), 0) ?? 0
+  const totalSaves  = snapshots?.reduce((s, r) => s + (r.saves ?? 0), 0) ?? 0
+  const totalShares = snapshots?.reduce((s, r) => s + (r.shares ?? 0), 0) ?? 0
+  const totalWatch  = snapshots?.reduce((s, r) => s + (r.watch_time_secs ?? 0), 0) ?? 0
+  const totalVisits = snapshots?.reduce((s, r) => s + (r.profile_visits ?? 0), 0) ?? 0
 
   const chartData = hasData
     ? snapshots.map(s => ({
@@ -93,14 +92,14 @@ export default async function DashboardPage() {
     : []
 
   const METRIC_CARDS = [
-    { label: 'Total Followers',  value: formatCompact(followersNow),                    delta: followersDelta, deltaLabel: 'vs prev. 30 days', icon: 'Users',     color: 'violet',  gradient: 'from-violet-600/20 to-violet-900/5',   iconBg: 'bg-violet-900/50'  },
-    { label: 'Reel Views',       value: formatCompact(totalReelViews),                  delta: reelDelta,      deltaLabel: 'vs prev. 30 days', icon: 'Eye',       color: 'cyan',    gradient: 'from-cyan-600/20 to-cyan-900/5',       iconBg: 'bg-cyan-900/50'    },
-    { label: 'Engagement Rate',  value: `${avgEngagement.toFixed(2)}%`,                 delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'Heart',     color: 'pink',    gradient: 'from-pink-600/20 to-pink-900/5',       iconBg: 'bg-pink-900/50'    },
-    { label: 'Total Reach',      value: formatCompact(totalReach),                      delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'TrendingUp',color: 'emerald', gradient: 'from-emerald-600/20 to-emerald-900/5', iconBg: 'bg-emerald-900/50' },
-    { label: 'Saves',            value: formatCompact(totalSaves),                      delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'BarChart2', color: 'orange',  gradient: 'from-orange-600/20 to-orange-900/5',   iconBg: 'bg-orange-900/50'  },
-    { label: 'Shares',           value: formatCompact(totalShares),                     delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'Share2',    color: 'blue',    gradient: 'from-blue-600/20 to-blue-900/5',       iconBg: 'bg-blue-900/50'    },
-    { label: 'Watch Time',       value: `${Math.round(totalWatch / 3600)}h`,            delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'Clock',     color: 'purple',  gradient: 'from-purple-600/20 to-purple-900/5',   iconBg: 'bg-purple-900/50'  },
-    { label: 'Profile Visits',   value: formatCompact(totalVisits),                     delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'Zap',       color: 'yellow',  gradient: 'from-yellow-600/20 to-yellow-900/5',   iconBg: 'bg-yellow-900/50'  },
+    { label: 'Total Followers',  value: formatCompact(followersNow),                                           delta: followersDelta, deltaLabel: 'vs prev. 30 days', icon: 'Users',     color: 'violet',  gradient: 'from-violet-600/20 to-violet-900/5',   iconBg: 'bg-violet-900/50'  },
+    { label: 'Reel Views',       value: formatCompact(totalReelViews),                                         delta: reelDelta,      deltaLabel: 'vs prev. 30 days', icon: 'Eye',       color: 'cyan',    gradient: 'from-cyan-600/20 to-cyan-900/5',       iconBg: 'bg-cyan-900/50'    },
+    { label: 'Engagement Rate',  value: `${avgEngagement.toFixed(2)}%`,                                        delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'Heart',     color: 'pink',    gradient: 'from-pink-600/20 to-pink-900/5',       iconBg: 'bg-pink-900/50'    },
+    { label: 'Total Reach',      value: formatCompact(totalReach),                                             delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'TrendingUp',color: 'emerald', gradient: 'from-emerald-600/20 to-emerald-900/5', iconBg: 'bg-emerald-900/50' },
+    { label: 'Saves',            value: formatCompact(totalSaves),                                             delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'BarChart2', color: 'orange',  gradient: 'from-orange-600/20 to-orange-900/5',   iconBg: 'bg-orange-900/50'  },
+    { label: 'Shares',           value: formatCompact(totalShares),                                            delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'Share2',    color: 'blue',    gradient: 'from-blue-600/20 to-blue-900/5',       iconBg: 'bg-blue-900/50'    },
+    { label: 'Watch Time',       value: totalWatch === 0 ? '0h' : `${Math.round(totalWatch / 3600)}h`,         delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'Clock',     color: 'purple',  gradient: 'from-purple-600/20 to-purple-900/5',   iconBg: 'bg-purple-900/50'  },
+    { label: 'Profile Visits',   value: formatCompact(totalVisits),                                            delta: 0,              deltaLabel: 'vs prev. 30 days', icon: 'Zap',       color: 'yellow',  gradient: 'from-yellow-600/20 to-yellow-900/5',   iconBg: 'bg-yellow-900/50'  },
   ]
 
   return (
@@ -142,7 +141,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Metric cards — only show when account exists */}
+      {/* Metric cards */}
       {hasAccount && (
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {METRIC_CARDS.map((card, i) => (
@@ -151,7 +150,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Chart — only show when account exists */}
+      {/* Chart */}
       {hasAccount && (
         <div className="card p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
@@ -173,8 +172,11 @@ export default async function DashboardPage() {
             </div>
           </div>
           {chartData.length === 0 ? (
-            <div className="h-48 flex items-center justify-center text-gray-500 text-sm border border-dashed border-white/[0.06] rounded-xl">
-              Analytics data will appear here once your account syncs
+            <div className="h-48 flex flex-col items-center justify-center gap-3 border border-dashed border-white/[0.06] rounded-xl">
+              <p className="text-sm text-gray-500">Analytics data will appear here once your account syncs</p>
+              <a href="/dashboard/analytics" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                Enter stats manually →
+              </a>
             </div>
           ) : (
             <Suspense fallback={<div className="h-56 rounded-xl bg-white/[0.02] animate-pulse" />}>
