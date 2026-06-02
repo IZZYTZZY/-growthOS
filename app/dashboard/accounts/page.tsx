@@ -27,22 +27,19 @@ const STATUS_BADGE: Record<string, string> = {
 
 export default function AccountsPage() {
   const supabase = createClient()
-  const [accounts,       setAccounts]       = useState<InstagramAccount[]>([])
-  const [loading,        setLoading]        = useState(true)
-  const [showModal,      setShowModal]      = useState(false)
-  const [tab,            setTab]            = useState<'manual' | 'oauth'>('manual')
-  const [saving,         setSaving]         = useState(false)
-  const [formError,      setFormError]      = useState<string | null>(null)
-  const [userId,         setUserId]         = useState<string | null>(null)
-  const [syncingId,      setSyncingId]      = useState<string | null>(null)
-  const [syncAccount,    setSyncAccount]    = useState<InstagramAccount | null>(null)
-  const [syncSaved,      setSyncSaved]      = useState<string | null>(null)
-  const [syncForm,       setSyncForm]       = useState({
-    followers_count: '',
-    following_count: '',
-    media_count: '',
-    biography: '',
-    website: '',
+  const [accounts,     setAccounts]     = useState<InstagramAccount[]>([])
+  const [loading,      setLoading]      = useState(true)
+  const [showModal,    setShowModal]    = useState(false)
+  const [tab,          setTab]          = useState<'manual' | 'oauth'>('manual')
+  const [saving,       setSaving]       = useState(false)
+  const [formError,    setFormError]    = useState<string | null>(null)
+  const [userId,       setUserId]       = useState<string | null>(null)
+  const [syncingId,    setSyncingId]    = useState<string | null>(null)
+  const [syncAccount,  setSyncAccount]  = useState<InstagramAccount | null>(null)
+  const [syncSaved,    setSyncSaved]    = useState<string | null>(null)
+  const [syncError,    setSyncError]    = useState<string | null>(null)
+  const [syncForm,     setSyncForm]     = useState({
+    followers_count: '', following_count: '', media_count: '', biography: '', website: '',
   })
   const [form, setForm] = useState({
     username: '', display_name: '', instagram_user_id: '',
@@ -67,8 +64,8 @@ export default function AccountsPage() {
   }, [])
 
   const saveManual = async () => {
-    if (!form.username.trim())           { setFormError('Username is required'); return }
-    if (!form.instagram_user_id.trim())  { setFormError('Instagram User ID is required'); return }
+    if (!form.username.trim())          { setFormError('Username is required'); return }
+    if (!form.instagram_user_id.trim()) { setFormError('Instagram User ID is required'); return }
     setSaving(true); setFormError(null)
 
     const { data, error } = await supabase
@@ -97,6 +94,45 @@ export default function AccountsPage() {
     setSaving(false)
   }
 
+  // ── REAL Instagram sync via Graph API ──────────────────
+  const syncFromInstagram = async (acc: InstagramAccount) => {
+    setSyncingId(acc.id)
+    setSyncError(null)
+
+    // Get the stored access token
+    const { data: accountWithToken } = await supabase
+      .from('instagram_accounts')
+      .select('access_token')
+      .eq('id', acc.id)
+      .single()
+
+    if (!accountWithToken?.access_token) {
+      setSyncError('No access token found for this account. Please reconnect.')
+      setSyncingId(null)
+      return
+    }
+
+    const res = await fetch('/api/instagram/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        account_id:   acc.id,
+        access_token: accountWithToken.access_token,
+      }),
+    })
+
+    const json = await res.json()
+    if (json.success) {
+      setAccounts(prev => prev.map(a => a.id === acc.id ? json.data.account : a))
+      setSyncSaved(acc.id)
+      setTimeout(() => setSyncSaved(null), 2500)
+    } else {
+      setSyncError(json.error ?? 'Sync failed')
+    }
+    setSyncingId(null)
+  }
+
+  // ── Manual stat editing ────────────────────────────────
   const openSync = (acc: InstagramAccount) => {
     setSyncAccount(acc)
     setSyncForm({
@@ -111,7 +147,6 @@ export default function AccountsPage() {
   const saveSync = async () => {
     if (!syncAccount) return
     setSyncingId(syncAccount.id)
-
     const { data, error } = await supabase
       .from('instagram_accounts')
       .update({
@@ -159,13 +194,23 @@ export default function AccountsPage() {
       <div className="card p-4 border-blue-700/30 bg-blue-900/10 flex items-start gap-3">
         <Info className="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm text-blue-300 font-medium">Instagram API Integration</p>
+          <p className="text-sm text-blue-300 font-medium">Instagram API Connected</p>
           <p className="text-xs text-blue-400/70 mt-0.5">
-            Full OAuth requires a Meta Developer App. For now, add your account details manually and use Sync Stats to update your numbers.
-            {' '}<a href="https://developers.facebook.com" target="_blank" rel="noreferrer" className="underline hover:text-blue-300">Set up Meta App →</a>
+            Click "Sync from IG" to pull your real follower count, posts, likes and comments directly from Instagram.
           </p>
         </div>
       </div>
+
+      {/* Sync error banner */}
+      {syncError && (
+        <div className="card p-4 border-red-700/30 bg-red-900/10 flex items-center gap-3">
+          <XCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
+          <p className="text-sm text-red-400">{syncError}</p>
+          <button onClick={() => setSyncError(null)} className="ml-auto text-red-400 hover:text-red-300">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Accounts grid */}
       {loading ? (
@@ -213,10 +258,10 @@ export default function AccountsPage() {
 
               {acc.biography && <p className="text-xs text-gray-500 line-clamp-2">{acc.biography}</p>}
 
-              {/* Sync form — shows inline when syncing */}
+              {/* Manual sync form — inline */}
               {syncAccount?.id === acc.id ? (
                 <div className="space-y-3 pt-2 border-t border-white/[0.06]">
-                  <p className="text-xs font-medium text-gray-300">Update Stats</p>
+                  <p className="text-xs font-medium text-gray-300">Update Stats Manually</p>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { key: 'followers_count', label: 'Followers' },
@@ -263,8 +308,18 @@ export default function AccountsPage() {
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => openSync(acc)} className="btn-secondary text-xs flex-1 justify-center">
-                      <RefreshCw className="h-3 w-3" /> Sync Stats
+                    {/* REAL Instagram sync */}
+                    <button onClick={() => syncFromInstagram(acc)} disabled={syncingId === acc.id}
+                      className="btn-primary text-xs flex-1 justify-center">
+                      {syncingId === acc.id
+                        ? <Loader2 className="h-3 w-3 animate-spin" />
+                        : syncSaved === acc.id
+                        ? <><CheckCheck className="h-3 w-3" /> Synced!</>
+                        : <><RefreshCw className="h-3 w-3" /> Sync from IG</>}
+                    </button>
+                    {/* Manual edit */}
+                    <button onClick={() => openSync(acc)} className="btn-secondary text-xs px-3 justify-center">
+                      Manual
                     </button>
                     <button onClick={() => deleteAccount(acc.id)}
                       className="p-2 rounded-xl text-gray-500 hover:text-red-400 hover:bg-red-900/20 border border-white/[0.06] transition-all">
@@ -382,24 +437,12 @@ export default function AccountsPage() {
               ) : (
                 <div className="space-y-4">
                   <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 space-y-3">
-                    <p className="text-sm font-medium text-gray-300">To enable full OAuth:</p>
-                    {[
-                      'Go to developers.facebook.com and create a Meta App',
-                      'Add the Instagram product to your app',
-                      'Get your App ID and App Secret approved',
-                      'Add NEXT_PUBLIC_META_APP_ID to your Vercel env vars',
-                      'The OAuth button below will then work automatically',
-                    ].map((step, i) => (
-                      <div key={i} className="flex items-start gap-3">
-                        <span className="h-5 w-5 rounded-full bg-violet-900/50 border border-violet-700/30 text-violet-400 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                        <p className="text-xs text-gray-400">{step}</p>
-                      </div>
-                    ))}
+                    <p className="text-sm font-medium text-gray-300">OAuth Setup Complete ✅</p>
+                    <p className="text-xs text-gray-400">
+                      Your Meta App is connected. Add an account via Manual Entry with its access token,
+                      then use "Sync from IG" to pull real data automatically.
+                    </p>
                   </div>
-                  <button disabled className="btn-primary w-full justify-center opacity-50 cursor-not-allowed">
-                    Connect via Instagram OAuth
-                    <span className="text-[10px] ml-1 opacity-60">(requires Meta App)</span>
-                  </button>
                   <a href="https://developers.facebook.com/apps" target="_blank" rel="noreferrer"
                     className="btn-secondary w-full justify-center text-sm">
                     <ExternalLink className="h-4 w-4" /> Open Meta Developer Console
